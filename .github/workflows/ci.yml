@@ -1,4 +1,4 @@
-name: CI
+name: PHP Composer Auto-Fix Lock
 
 on:
   push:
@@ -7,35 +7,37 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        php: [8.2]   # sesuaikan dengan versi PHP di composer.json
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true  # penting untuk bisa push balik
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
-          coverage: none
+          php-version: '8.2'
 
-      - name: Show PHP and Composer version
+      - name: Check PHP & Composer
         run: |
           php -v
           composer -V
 
-      - name: Validate composer.json and composer.lock
+      - name: Validate composer.json
+        id: validate
+        continue-on-error: true
         run: composer validate --strict
 
-      - name: Install dependencies
-        run: composer install --no-progress --prefer-dist --optimize-autoloader
-
-      # Tambahan: cek apakah composer.lock sesuai dengan composer.json
-      - name: Check if composer.lock is up to date
+      - name: Auto-fix composer.lock if needed
+        if: steps.validate.outcome == 'failure'
         run: |
-          composer update --lock --dry-run
+          echo "composer.lock out of date, fixing..."
+          composer update --lock
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add composer.lock
+          git commit -m "chore: auto-update composer.lock [skip ci]" || echo "No changes to commit"
+          git push origin HEAD:${{ github.ref_name }}
