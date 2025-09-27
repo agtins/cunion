@@ -1,0 +1,45 @@
+name: Auto-Fix Composer Lock
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  composer-lock:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true  # penting agar bisa push balik
+
+      # 2️⃣ Setup PHP
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      # 3️⃣ Validate composer.json
+      - name: Validate composer.json
+        id: validate
+        continue-on-error: true
+        run: composer validate --strict
+
+      # 4️⃣ Auto-fix composer.lock jika validasi gagal
+      - name: Auto-fix composer.lock
+        if: steps.validate.outcome == 'failure'
+        run: |
+          echo "composer.lock out of date, updating..."
+          composer update --lock
+          
+          # Konfigurasi git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add composer.lock
+          git commit -m "chore: auto-update composer.lock [skip ci]" || echo "No changes to commit"
+          git push origin HEAD:${{ github.ref_name }}
