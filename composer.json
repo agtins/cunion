@@ -1,0 +1,20 @@
+{
+  "name": "ksp/cu-yos-sudarso",
+  "description": "Aplikasi web KSP CU YOS SUDARSO dengan admin panel untuk update statistik dan fitur.",
+  "type": "project",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Admin KSP CU YOS SUDARSO",
+      "email": "admin@example.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  }
+}
