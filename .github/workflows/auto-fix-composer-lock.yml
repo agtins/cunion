@@ -15,6 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+        token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true  # penting agar bisa push balik
 
       # 2️⃣ Setup PHP
